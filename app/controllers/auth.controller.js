@@ -2,30 +2,133 @@ const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
 const Role = db.role;
+const nodemailer = require("nodemailer");
 
 const Op = db.Sequelize.Op;
-
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
+let admissionNumber = `AD/22/JAN/`;
+
+// MAILER SETUP
+
+const mailer = nodemailer.createTransport({
+  port: 465,
+  host: "smtp.gmail.com",
+  auth: {
+    user: process.env.GMAIL_USERNAME,
+    pass: process.env.GMAIL_PASSWORD,
+  },
+  secure: true,
+});
 
 exports.signup = (req, res) => {
   // Save User to Database
   User.create({
-    username: req.body.username,
+    firstname: req.body.firstname,
+    lastname: req.body.lastname,
+    middlename: req.body.middlename,
+    dob: req.body.dob,
+    gender: req.body.gender,
+    address: req.body.address,
+    city: req.body.city,
+    state: req.body.state,
+    country: req.body.country,
+    zip: req.body.zip,
+    phoneno: req.body.phoneno,
     email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 8)
+    nationality: req.body.nationality,
+    profession: req.body.profession,
+    rel_status: req.body.rel_status,
+    weddate: req.body.weddate,
+    spousename: req.body.spousename,
+    marriagedate: req.body.marriagedate,
+    spouseagree: req.body.spouseagree,
+    childname: req.body.childname,
+    friendname: req.body.friendname,
+    friendrel: req.body.friendrel,
+    adullaminfo: req.body.adullaminfo,
+    havecloserel: req.body.havecloserel,
+    bornagain: req.body.bornagain,
+    salvbrief: req.body.salvbrief,
+    godsworkings: req.body.godsworkings,
+    callofgod: req.body.callofgod,
+    intoministry: req.body.intoministry,
+    spiritgifts: req.body.spiritgifts,
+    reason: req.body.reason,
+    churchname: req.body.churchname,
+    churchaddress: req.body.churchaddress,
+    pastorname: req.body.pastorname,
+    pastoremail: req.body.pastoremail,
+    pastorphone: req.body.pastorphone,
+    churchinvolve: req.body.churchinvolve,
+    waterbapt: req.body.waterbapt,
+    baptdate: req.body.baptdate,
+    holyghostbapt: req.body.holyghostbapt,
+    disability: req.body.disability,
+    nervousill: req.body.nervousill,
+    anorexia: req.body.anorexia,
+    diabetesepilepsy: req.body.diabetesepilepsy,
+    requiremedic: req.body.requiremedic,
+    specialdiet: req.body.specialdiet,
+    learndisability: req.body.learndisability,
+    usedilldrug: req.body.usedilldrug,
+    treatdrugaddic: req.body.treatdrugaddic,
+    hadsurgery: req.body.hadsurgery,
+    pastexpinfluence: req.body.pastexpinfluence,
+    healthissuedesc: req.body.healthissuedesc,
+    helpfulabilities: req.body.helpfulabilities,
+    hobbies: req.body.hobbies,
+    playinstrument: req.body.playinstrument,
+    instrument: req.body.instrument,
+    emergcontname: req.body.emergcontname,
+    emergcontrel: req.body.emergcontrel,
+    emergphone: req.body.emergphone,
+    emergaddress: req.body.emergaddress,
+    refonename: req.body.refonename,
+    refoneemail: req.body.refoneemail,
+    refonephone: req.body.refonephone,
+    reftwoname: req.body.reftwoname,
+    reftwoemail: req.body.reftwoemail,
+    reftwophone: req.body.reftwophone,
+    programoption: req.body.programoption,
+    accomoption: req.body.accomoption,
+    scholarship: req.body.scholarship,
+    scholreason: req.body.scholreason,
+    agree: req.body.agree,
+    applicationnumber: admissionNumber,
+    password: bcrypt.hashSync(req.body.firstname, 8),
   })
-    .then(user => {
+    .then((user) => {
       if (req.body.roles) {
         Role.findAll({
           where: {
             name: {
-              [Op.or]: req.body.roles
-            }
-          }
-        }).then(roles => {
+              [Op.or]: req.body.roles,
+            },
+          },
+        }).then((roles) => {
           user.setRoles(roles).then(() => {
             res.send({ message: "User registered successfully!" });
+
+            //SENDING OF MAIL
+
+            const mailData = {
+              from: process.env.GMAIL_USERNAME,
+              to: req.body.email,
+              subject: "CONGRATULATION",
+              text: "Your registration is succesful",
+              html: `<b>Hi ${req.body.firstname} ${req.body.lastname}  </b><br> Congratulations on your successful registration <br/>`,
+            };
+
+            mailer.sendMail(mailData, (error, info) => {
+              if (error) {
+                return console.log(error);
+              }
+              res
+                .status(200)
+                .send({ message: "Mail send", message_id: info.messageId });
+            });
+            //END OF MAILER
           });
         });
       } else {
@@ -35,7 +138,7 @@ exports.signup = (req, res) => {
         });
       }
     })
-    .catch(err => {
+    .catch((err) => {
       res.status(500).send({ message: err.message });
     });
 };
@@ -43,10 +146,10 @@ exports.signup = (req, res) => {
 exports.signin = (req, res) => {
   User.findOne({
     where: {
-      username: req.body.username
-    }
+      email: req.body.email,
+    },
   })
-    .then(user => {
+    .then((user) => {
       if (!user) {
         return res.status(404).send({ message: "User Not found." });
       }
@@ -59,29 +162,29 @@ exports.signin = (req, res) => {
       if (!passwordIsValid) {
         return res.status(401).send({
           accessToken: null,
-          message: "Invalid Password!"
+          message: "Invalid Password!",
         });
       }
 
       var token = jwt.sign({ id: user.id }, config.secret, {
-        expiresIn: 86400 // 24 hours
+        expiresIn: 86400, // 24 hours
       });
 
       var authorities = [];
-      user.getRoles().then(roles => {
+      user.getRoles().then((roles) => {
         for (let i = 0; i < roles.length; i++) {
           authorities.push("ROLE_" + roles[i].name.toUpperCase());
         }
         res.status(200).send({
           id: user.id,
-          username: user.username,
+          firstname: user.firstname + " " + lastname,
           email: user.email,
           roles: authorities,
-          accessToken: token
+          accessToken: token,
         });
       });
     })
-    .catch(err => {
+    .catch((err) => {
       res.status(500).send({ message: err.message });
     });
 };
