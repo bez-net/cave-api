@@ -1,4 +1,4 @@
-# Node.js – JWT Authentication & Authorization with JSONWebToken & Sequelize - CAVE ADULLAM
+## Node.js – JWT Authentication & Authorization with JSONWebToken & Sequelize - CAVE ADULLAM
 
 ## User Registration, User Login and Authorization process.
 
