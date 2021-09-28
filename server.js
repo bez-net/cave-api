@@ -11,7 +11,7 @@ var corsOptions = {
   origin: "http://0.0.0.0:1444",
 };
 
-app.use(cors(corsOptions));
+app.use(cors({origin: '*'}));
 
 // parse requests of content-type - application/json
 app.use(express.json());
