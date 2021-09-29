@@ -9,18 +9,6 @@ var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
 let admissionNumber = `AD/22/JAN/`;
 
-// MAILER SETUP
-
-const mailer = nodemailer.createTransport({
-  port: 465,
-  host: "smtp.gmail.com",
-  auth: {
-    user: process.env.GMAIL_USERNAME,
-    pass: process.env.GMAIL_PASSWORD,
-  },
-  secure: true,
-});
-
 exports.signup = (req, res) => {
   // Save User to Database
   User.create({
@@ -112,22 +100,7 @@ exports.signup = (req, res) => {
 
             //SENDING OF MAIL
 
-            const mailData = {
-              from: process.env.GMAIL_USERNAME,
-              to: req.body.email,
-              subject: "CONGRATULATION",
-              text: "Your registration is succesful",
-              html: `<b>Hi ${req.body.firstname} ${req.body.lastname}  </b><br> Congratulations on your successful registration <br/>`,
-            };
-
-            mailer.sendMail(mailData, (error, info) => {
-              if (error) {
-                return console.log(error);
-              }
-              res
-                .status(200)
-                .send({ message: "Mail send", message_id: info.messageId });
-            });
+            
             //END OF MAILER
           });
         });
